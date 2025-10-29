@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import { AuthForm } from '@/components/AuthForm';
 
-const Index = () => {
+const Auth = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -21,19 +21,7 @@ const Index = () => {
     );
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/50">
-      <div className="text-center space-y-6 px-4">
-        <h1 className="text-5xl font-bold tracking-tight">Welcome</h1>
-        <p className="text-xl text-muted-foreground max-w-md mx-auto">
-          Get started by creating an account or signing in
-        </p>
-        <Button size="lg" onClick={() => navigate('/auth')}>
-          Get Started
-        </Button>
-      </div>
-    </div>
-  );
+  return <AuthForm />;
 };
 
-export default Index;
+export default Auth;
