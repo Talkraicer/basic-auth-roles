@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,6 +30,8 @@ const LeaderFeedback = () => {
   const [users, setUsers] = useState<UserOption[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
   const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || user.role !== 'leader')) {
@@ -37,19 +39,47 @@ const LeaderFeedback = () => {
     }
   }, [user, loading, navigate]);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      const { data: profiles } = await supabase
-        .from('profiles')
+  const fetchUsers = useCallback(async (query: string = '') => {
+    if (!user) return;
+    
+    setIsSearching(true);
+    try {
+      let queryBuilder = supabase
+        .from('members')
         .select('id, username')
+        .neq('id', user.id) // Exclude current user (leader)
         .order('username');
 
-      if (profiles) {
-        setUsers(profiles);
+      // Apply search filter if query exists
+      if (query.trim()) {
+        queryBuilder = queryBuilder.ilike('username', `%${query}%`);
       }
-    };
+
+      const { data: members, error } = await queryBuilder.limit(20);
+
+      if (error) throw error;
+
+      setUsers(members || []);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      setUsers([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchUsers(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, fetchUsers]);
 
   if (loading || !user) {
     return null;
@@ -85,10 +115,16 @@ const LeaderFeedback = () => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput placeholder="Search members..." />
+                  <Command shouldFilter={false}>
+                    <CommandInput 
+                      placeholder="Search members..." 
+                      value={searchQuery}
+                      onValueChange={setSearchQuery}
+                    />
                     <CommandList>
-                      <CommandEmpty>No member found.</CommandEmpty>
+                      <CommandEmpty>
+                        {isSearching ? 'Searching...' : 'No users found.'}
+                      </CommandEmpty>
                       <CommandGroup>
                         {users.map((u) => (
                           <CommandItem

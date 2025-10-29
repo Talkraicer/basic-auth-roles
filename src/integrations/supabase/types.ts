@@ -97,7 +97,13 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      members: {
+        Row: {
+          id: string | null
+          username: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
