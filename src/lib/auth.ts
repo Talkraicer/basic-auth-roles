@@ -74,15 +74,21 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('username, role')
+    .select('username')
     .eq('id', session.user.id)
     .single();
 
-  if (!profile) return null;
+  const { data: userRole } = await supabase
+    .from('user_roles')
+    .select('role')
+    .eq('user_id', session.user.id)
+    .single();
+
+  if (!profile || !userRole) return null;
 
   return {
     id: session.user.id,
     username: profile.username,
-    role: profile.role as 'user' | 'leader'
+    role: userRole.role as 'user' | 'leader'
   };
 };
