@@ -13,18 +13,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Feedback, useFeedback } from '@/hooks/useFeedback';
 import { CounterpartPreview } from './CounterpartPreview';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
 
 const feedbackSchema = z.object({
   work_date: z.date(),
-  job_rule: z.string().min(1).max(100),
   grade: z.number().min(1).max(100),
   review_subject: z.string().min(1).max(50),
   notes: z.string().optional(),
@@ -51,12 +42,9 @@ export const FeedbackForm = ({
   onSuccess,
   onCancel,
 }: FeedbackFormProps) => {
-  const { createFeedback, updateFeedback, deleteFeedback, findCounterpart, getJobRuleSuggestions } =
-    useFeedback();
+  const { createFeedback, updateFeedback, deleteFeedback, findCounterpart } = useFeedback();
   const [isLoading, setIsLoading] = useState(false);
   const [counterpart, setCounterpart] = useState<Feedback | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const {
     register,
@@ -69,7 +57,6 @@ export const FeedbackForm = ({
     defaultValues: existingFeedback
       ? {
           work_date: new Date(existingFeedback.work_date),
-          job_rule: existingFeedback.job_rule,
           grade: existingFeedback.grade,
           review_subject: existingFeedback.review_subject,
           notes: existingFeedback.notes || '',
@@ -81,24 +68,19 @@ export const FeedbackForm = ({
   });
 
   const workDate = watch('work_date');
-  const jobRule = watch('job_rule');
 
   useEffect(() => {
     if (workDate) {
-      const loadCounterpartAndSuggestions = async () => {
+      const loadCounterpart = async () => {
         const dateStr = format(workDate, 'yyyy-MM-dd');
         const cp = await findCounterpart(targetUserId, dateStr, authorRole);
         setCounterpart(cp);
-
-        const sug = await getJobRuleSuggestions(targetUserId, dateStr);
-        setSuggestions(sug);
       };
-      loadCounterpartAndSuggestions();
+      loadCounterpart();
     }
   }, [workDate, targetUserId, authorRole]);
 
-  const handleAlign = (data: { job_rule: string; grade: number; review_subject: string }) => {
-    setValue('job_rule', data.job_rule);
+  const handleAlign = (data: { grade: number; review_subject: string }) => {
     setValue('grade', data.grade);
     setValue('review_subject', data.review_subject);
   };
@@ -111,7 +93,6 @@ export const FeedbackForm = ({
         author_user_id: authorUserId,
         author_role: authorRole,
         work_date: format(data.work_date, 'yyyy-MM-dd'),
-        job_rule: data.job_rule.trim(),
         grade: data.grade,
         review_subject: data.review_subject.trim(),
         notes: data.notes?.trim(),
@@ -177,48 +158,6 @@ export const FeedbackForm = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="job_rule">Job/Rule</Label>
-            <Popover open={showSuggestions} onOpenChange={setShowSuggestions}>
-              <PopoverTrigger asChild>
-                <Input
-                  id="job_rule"
-                  {...register('job_rule')}
-                  placeholder="Enter job or rule"
-                  onFocus={() => setShowSuggestions(true)}
-                  maxLength={100}
-                />
-              </PopoverTrigger>
-              {suggestions.length > 0 && (
-                <PopoverContent className="w-[400px] p-0">
-                  <Command>
-                    <CommandInput placeholder="Search suggestions..." />
-                    <CommandList>
-                      <CommandEmpty>No suggestions found.</CommandEmpty>
-                      <CommandGroup>
-                        {suggestions.map((suggestion, idx) => (
-                          <CommandItem
-                            key={idx}
-                            value={suggestion}
-                            onSelect={() => {
-                              setValue('job_rule', suggestion);
-                              setShowSuggestions(false);
-                            }}
-                          >
-                            {suggestion}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              )}
-            </Popover>
-            {errors.job_rule && (
-              <p className="text-sm text-destructive">{errors.job_rule.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="review_subject">Review Subject</Label>
             <Input
               id="review_subject"
@@ -259,7 +198,6 @@ export const FeedbackForm = ({
             counterpart={counterpart}
             onAlign={handleAlign}
             roleLabel={counterpartRoleLabel}
-            currentJobRule={jobRule}
           />
         </div>
       </div>

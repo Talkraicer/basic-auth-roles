@@ -60,7 +60,6 @@ export const FeedbackTable = ({
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
-              <TableHead>Job/Rule</TableHead>
               <TableHead>Target</TableHead>
               <TableHead>Author</TableHead>
               <TableHead>Role</TableHead>
@@ -76,7 +75,6 @@ export const FeedbackTable = ({
                 <TableCell className="font-medium">
                   {format(new Date(feedback.work_date), 'MMM d, yyyy')}
                 </TableCell>
-                <TableCell>{feedback.job_rule}</TableCell>
                 <TableCell>{feedback.target_username || 'Unknown'}</TableCell>
                 <TableCell>{feedback.author_username || 'Unknown'}</TableCell>
                 <TableCell>

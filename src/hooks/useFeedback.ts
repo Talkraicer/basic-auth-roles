@@ -8,7 +8,7 @@ export interface Feedback {
   author_user_id: string;
   author_role: 'user' | 'leader';
   work_date: string;
-  job_rule: string;
+  job_rule?: string;
   grade: number;
   review_subject: string;
   notes?: string;
@@ -98,7 +98,7 @@ export const useFeedback = () => {
 
       if (error) {
         if (error.message.includes('duplicate')) {
-          throw new Error('Feedback already exists for this date and job/rule');
+          throw new Error('Feedback already exists for this date');
         }
         throw error;
       }
@@ -173,54 +173,6 @@ export const useFeedback = () => {
     }
   };
 
-  const getJobRuleSuggestions = async (
-    userId: string,
-    workDate: string
-  ): Promise<string[]> => {
-    try {
-      // Get counterpart's job_rule first
-      const { data: counterpart } = await supabase
-        .from('feedback')
-        .select('job_rule')
-        .eq('target_user_id', userId)
-        .eq('work_date', workDate)
-        .maybeSingle();
-
-      // Get user's history
-      const { data: history } = await supabase
-        .from('feedback')
-        .select('job_rule')
-        .eq('target_user_id', userId)
-        .order('work_date', { ascending: false })
-        .limit(10);
-
-      // Get global popular
-      const { data: global } = await supabase
-        .from('feedback')
-        .select('job_rule')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      const suggestions = new Set<string>();
-
-      // Priority 1: Counterpart
-      if (counterpart?.job_rule) {
-        suggestions.add(counterpart.job_rule);
-      }
-
-      // Priority 2: User history
-      history?.forEach((item) => suggestions.add(item.job_rule));
-
-      // Priority 3: Global
-      global?.forEach((item) => suggestions.add(item.job_rule));
-
-      return Array.from(suggestions).slice(0, 10);
-    } catch (error) {
-      console.error('Failed to get suggestions:', error);
-      return [];
-    }
-  };
-
   return {
     feedbacks,
     loading,
@@ -229,6 +181,5 @@ export const useFeedback = () => {
     updateFeedback,
     deleteFeedback,
     findCounterpart,
-    getJobRuleSuggestions,
   };
 };

@@ -21,7 +21,7 @@ export type Database = {
           created_at: string
           grade: number
           id: string
-          job_rule: string
+          job_rule: string | null
           notes: string | null
           review_subject: string
           target_user_id: string
@@ -34,7 +34,7 @@ export type Database = {
           created_at?: string
           grade: number
           id?: string
-          job_rule: string
+          job_rule?: string | null
           notes?: string | null
           review_subject: string
           target_user_id: string
@@ -47,7 +47,7 @@ export type Database = {
           created_at?: string
           grade?: number
           id?: string
-          job_rule?: string
+          job_rule?: string | null
           notes?: string | null
           review_subject?: string
           target_user_id?: string
