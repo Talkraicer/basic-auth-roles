@@ -8,6 +8,9 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import SelfFeedback from "./pages/feedback/SelfFeedback";
+import LeaderFeedback from "./pages/feedback/LeaderFeedback";
+import FeedbackList from "./pages/feedback/FeedbackList";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +30,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/feedback/self"
+              element={
+                <ProtectedRoute>
+                  <SelfFeedback />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/feedback/leader"
+              element={
+                <ProtectedRoute>
+                  <LeaderFeedback />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/feedback/list"
+              element={
+                <ProtectedRoute>
+                  <FeedbackList />
                 </ProtectedRoute>
               }
             />
