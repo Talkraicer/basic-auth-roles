@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 
@@ -19,15 +21,46 @@ interface ChartDataPoint {
 export const FeedbackGradeChart = ({ targetUserId, targetUsername }: FeedbackGradeChartProps) => {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState<string>('');
 
   useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('feedback')
+          .select('review_subject')
+          .eq('target_user_id', targetUserId);
+
+        if (error) throw error;
+
+        const uniqueSubjects = Array.from(new Set(data?.map(f => f.review_subject) || []));
+        setSubjects(uniqueSubjects);
+        
+        // Auto-select first subject
+        if (uniqueSubjects.length > 0 && !selectedSubject) {
+          setSelectedSubject(uniqueSubjects[0]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch subjects:', error);
+        setSubjects([]);
+      }
+    };
+
+    fetchSubjects();
+  }, [targetUserId]);
+
+  useEffect(() => {
+    if (!selectedSubject) return;
+
     const fetchFeedbackData = async () => {
       setLoading(true);
       try {
         const { data, error } = await supabase
           .from('feedback')
-          .select('work_date, grade, author_role')
+          .select('work_date, grade, author_role, review_subject')
           .eq('target_user_id', targetUserId)
+          .eq('review_subject', selectedSubject)
           .order('work_date', { ascending: true });
 
         if (error) throw error;
@@ -63,7 +96,7 @@ export const FeedbackGradeChart = ({ targetUserId, targetUsername }: FeedbackGra
     };
 
     fetchFeedbackData();
-  }, [targetUserId]);
+  }, [targetUserId, selectedSubject]);
 
   if (loading) {
     return (
@@ -76,7 +109,7 @@ export const FeedbackGradeChart = ({ targetUserId, targetUsername }: FeedbackGra
     );
   }
 
-  if (chartData.length === 0) {
+  if (subjects.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -106,7 +139,26 @@ export const FeedbackGradeChart = ({ targetUserId, targetUsername }: FeedbackGra
           Comparing self-assessment and leader feedback for {targetUsername}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label>Review Subject</Label>
+          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
+            <SelectTrigger className="w-full bg-background">
+              <SelectValue placeholder="Select a subject" />
+            </SelectTrigger>
+            <SelectContent className="bg-background z-50">
+              {subjects.map((subject) => (
+                <SelectItem key={subject} value={subject}>
+                  {subject}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {chartData.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No feedback data for this subject yet.</p>
+        ) : (
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
@@ -144,6 +196,7 @@ export const FeedbackGradeChart = ({ targetUserId, targetUsername }: FeedbackGra
             </LineChart>
           </ResponsiveContainer>
         </ChartContainer>
+        )}
       </CardContent>
     </Card>
   );
