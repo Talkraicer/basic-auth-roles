@@ -58,7 +58,7 @@ export const FeedbackGradeChart = ({ targetUserId, targetUsername }: FeedbackGra
       try {
         const { data, error } = await supabase
           .from('feedback')
-          .select('work_date, grade, author_role, review_subject')
+          .select('work_date, grade, author_role, author_user_id, review_subject')
           .eq('target_user_id', targetUserId)
           .eq('review_subject', selectedSubject)
           .order('work_date', { ascending: true });
@@ -79,9 +79,12 @@ export const FeedbackGradeChart = ({ targetUserId, targetUsername }: FeedbackGra
           }
           
           const point = dateMap.get(dateKey)!;
-          if (feedback.author_role === 'user') {
+          // User's self-assessment (author is the user themselves)
+          if (feedback.author_role === 'user' && feedback.author_user_id === targetUserId) {
             point.selfGrade = feedback.grade;
-          } else if (feedback.author_role === 'leader') {
+          } 
+          // Leader's feedback on the user
+          else if (feedback.author_role === 'leader') {
             point.leaderGrade = feedback.grade;
           }
         });
