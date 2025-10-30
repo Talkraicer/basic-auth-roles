@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
 import { FeedbackForm } from '@/components/feedback/FeedbackForm';
+import { FeedbackGradeChart } from '@/components/feedback/FeedbackGradeChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
@@ -152,15 +153,21 @@ const LeaderFeedback = () => {
             </div>
 
             {selectedUserId && (
-              <FeedbackForm
-                key={selectedUserId}
-                targetUserId={selectedUserId}
-                authorUserId={user.id}
-                authorRole="leader"
-                counterpartRoleLabel="Self"
-                onSuccess={() => navigate('/feedback/list')}
-                onCancel={() => navigate('/feedback/list')}
-              />
+              <>
+                <FeedbackGradeChart
+                  targetUserId={selectedUserId}
+                  targetUsername={users.find((u) => u.id === selectedUserId)?.username || ''}
+                />
+                <FeedbackForm
+                  key={selectedUserId}
+                  targetUserId={selectedUserId}
+                  authorUserId={user.id}
+                  authorRole="leader"
+                  counterpartRoleLabel="Self"
+                  onSuccess={() => navigate('/feedback/list')}
+                  onCancel={() => navigate('/feedback/list')}
+                />
+              </>
             )}
           </CardContent>
         </Card>
