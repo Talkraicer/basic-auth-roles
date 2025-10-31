@@ -1,1 +1,10 @@
 project_id = "chgbzcsbwmfpyucqbhmb"
+
+[functions.groups]
+verify_jwt = true
+
+[functions.group-members]
+verify_jwt = true
+
+[functions.group-favorites]
+verify_jwt = true

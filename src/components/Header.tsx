@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from '@/lib/auth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { LogOut, LayoutDashboard, MessageSquare, List } from 'lucide-react';
+import { LogOut, LayoutDashboard, MessageSquare, List, Users } from 'lucide-react';
 
 export const Header = () => {
   const { user } = useAuth();
@@ -30,6 +30,7 @@ export const Header = () => {
       icon: MessageSquare,
     },
     { path: '/feedback/list', label: 'Feedback List', icon: List },
+    { path: '/groups', label: 'Groups', icon: Users },
   ];
 
   return (

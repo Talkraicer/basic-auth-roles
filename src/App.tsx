@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import SelfFeedback from "./pages/feedback/SelfFeedback";
 import LeaderFeedback from "./pages/feedback/LeaderFeedback";
 import FeedbackList from "./pages/feedback/FeedbackList";
+import { GroupsList } from "./pages/groups/GroupsList";
+import { GroupDetail } from "./pages/groups/GroupDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -54,6 +56,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <FeedbackList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups"
+              element={
+                <ProtectedRoute>
+                  <GroupsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/:groupname"
+              element={
+                <ProtectedRoute>
+                  <GroupDetail />
                 </ProtectedRoute>
               }
             />

@@ -41,6 +41,13 @@ export type Database = {
             referencedRelation: "groups"
             referencedColumns: ["groupname"]
           },
+          {
+            foreignKeyName: "affiliation_groupname_fkey"
+            columns: ["groupname"]
+            isOneToOne: false
+            referencedRelation: "groups_overview"
+            referencedColumns: ["groupname"]
+          },
         ]
       }
       favorites: {
@@ -68,6 +75,13 @@ export type Database = {
             columns: ["groupname"]
             isOneToOne: false
             referencedRelation: "groups"
+            referencedColumns: ["groupname"]
+          },
+          {
+            foreignKeyName: "favorites_groupname_fkey"
+            columns: ["groupname"]
+            isOneToOne: false
+            referencedRelation: "groups_overview"
             referencedColumns: ["groupname"]
           },
         ]
@@ -170,6 +184,14 @@ export type Database = {
       }
     }
     Views: {
+      groups_overview: {
+        Row: {
+          created_at: string | null
+          groupname: string | null
+          members_count: number | null
+        }
+        Relationships: []
+      }
       members: {
         Row: {
           id: string | null
@@ -186,6 +208,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      rename_group: { Args: { _from: string; _to: string }; Returns: undefined }
     }
     Enums: {
       app_role: "user" | "leader"
