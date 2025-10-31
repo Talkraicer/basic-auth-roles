@@ -14,6 +14,64 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliation: {
+        Row: {
+          created_at: string
+          evaluatee_id: string
+          groupname: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          evaluatee_id: string
+          groupname: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          evaluatee_id?: string
+          groupname?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliation_groupname_fkey"
+            columns: ["groupname"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["groupname"]
+          },
+        ]
+      }
+      favorites: {
+        Row: {
+          created_at: string
+          groupname: string
+          id: string
+          reviewer_id: string
+        }
+        Insert: {
+          created_at?: string
+          groupname: string
+          id?: string
+          reviewer_id: string
+        }
+        Update: {
+          created_at?: string
+          groupname?: string
+          id?: string
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_groupname_fkey"
+            columns: ["groupname"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["groupname"]
+          },
+        ]
+      }
       feedback: {
         Row: {
           author_role: Database["public"]["Enums"]["app_role"]
@@ -53,6 +111,21 @@ export type Database = {
           target_user_id?: string
           updated_at?: string
           work_date?: string
+        }
+        Relationships: []
+      }
+      groups: {
+        Row: {
+          created_at: string
+          groupname: string
+        }
+        Insert: {
+          created_at?: string
+          groupname: string
+        }
+        Update: {
+          created_at?: string
+          groupname?: string
         }
         Relationships: []
       }
