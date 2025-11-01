@@ -70,24 +70,25 @@ const ReviewsChart = ({ title, data, isLoading, color = "hsl(var(--chart-1))" }:
         <CardDescription>Average grade by date</CardDescription>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          {typeof data[0].avg_grade}
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis dataKey="date" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-            <YAxis domain={[0, 100]} className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
-            <Tooltip content={<CustomTooltip />} />
-            <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="line" />
-            <Line
-              type="monotone"
-              dataKey="avg_grade"
-              stroke={color || "#3b82f6"}
-              strokeWidth={2}
-              name={title}
-              dot={{ fill: color, r: 4 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div className="w-full h-[300px]">
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="date" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+              <YAxis domain={[0, 100]} className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="line" />
+              <Line
+                type="monotone"
+                dataKey="avg_grade"
+                stroke={color || "#3b82f6"}
+                strokeWidth={2}
+                name={title}
+                dot={{ fill: color, r: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   );
