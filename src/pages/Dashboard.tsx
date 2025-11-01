@@ -35,10 +35,18 @@ const Dashboard = () => {
     
     setIsLoadingChart(true);
     try {
-      const { data, error } = await supabase.functions.invoke(
-        `feedback-series?target_user_id=${selectedUserId}`,
-        { method: 'GET' }
-      );
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error('No active session');
+      }
+
+      const { data, error } = await supabase.functions.invoke('feedback-series', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+        },
+        body: JSON.stringify({ target_user_id: selectedUserId }),
+      });
 
       if (error) throw error;
       setSelfData(data?.self_reviews || []);

@@ -36,10 +36,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // GET /feedback-series?target_user_id=...&from=...&to=...
+    // GET /feedback-series with body: { target_user_id, from?, to? }
     if (req.method === 'GET') {
-      const url = new URL(req.url);
-      const targetUserId = url.searchParams.get('target_user_id');
+      const body = await req.json().catch(() => ({}));
+      const targetUserId = body.target_user_id;
       
       if (!targetUserId) {
         return new Response(JSON.stringify({ error: 'target_user_id is required' }), {
@@ -49,8 +49,8 @@ Deno.serve(async (req) => {
       }
 
       // Default to last 90 days
-      const toDate = url.searchParams.get('to') || new Date().toISOString().split('T')[0];
-      const fromDate = url.searchParams.get('from') || 
+      const toDate = body.to || new Date().toISOString().split('T')[0];
+      const fromDate = body.from || 
         new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
       // Fetch feedback data - RLS will enforce access control
