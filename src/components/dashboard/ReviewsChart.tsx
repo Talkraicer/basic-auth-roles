@@ -71,7 +71,6 @@ const ReviewsChart = ({ title, data, isLoading, color = "hsl(var(--chart-1))" }:
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          {data}
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis dataKey="date" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
