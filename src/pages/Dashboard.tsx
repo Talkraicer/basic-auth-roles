@@ -20,7 +20,8 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedUserId, setSelectedUserId] = useState('');
-  const [chartData, setChartData] = useState<SeriesDataPoint[]>([]);
+  const [selfData, setSelfData] = useState<SeriesDataPoint[]>([]);
+  const [leaderData, setLeaderData] = useState<SeriesDataPoint[]>([]);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
 
   useEffect(() => {
@@ -40,10 +41,12 @@ const Dashboard = () => {
       );
 
       if (error) throw error;
-      setChartData(data || []);
+      setSelfData(data?.self_reviews || []);
+      setLeaderData(data?.leader_reviews || []);
     } catch (error) {
       console.error('Error loading chart data:', error);
-      setChartData([]);
+      setSelfData([]);
+      setLeaderData([]);
     } finally {
       setIsLoadingChart(false);
     }
@@ -76,7 +79,7 @@ const Dashboard = () => {
             </Card>
 
             {selectedUserId && (
-              <ReviewsChart data={chartData} isLoading={isLoadingChart} />
+              <ReviewsChart selfData={selfData} leaderData={leaderData} isLoading={isLoadingChart} />
             )}
           </div>
 

@@ -1,4 +1,4 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface DataPoint {
@@ -8,11 +8,12 @@ interface DataPoint {
 }
 
 interface ReviewsChartProps {
-  data: DataPoint[];
+  selfData: DataPoint[];
+  leaderData: DataPoint[];
   isLoading: boolean;
 }
 
-export const ReviewsChart = ({ data, isLoading }: ReviewsChartProps) => {
+export const ReviewsChart = ({ selfData, leaderData, isLoading }: ReviewsChartProps) => {
   if (isLoading) {
     return (
       <Card>
@@ -29,7 +30,9 @@ export const ReviewsChart = ({ data, isLoading }: ReviewsChartProps) => {
     );
   }
 
-  if (!data || data.length === 0) {
+  const hasNoData = (!selfData || selfData.length === 0) && (!leaderData || leaderData.length === 0);
+  
+  if (hasNoData) {
     return (
       <Card>
         <CardHeader>
@@ -45,6 +48,27 @@ export const ReviewsChart = ({ data, isLoading }: ReviewsChartProps) => {
     );
   }
 
+  // Merge dates from both datasets for proper X-axis
+  const allDates = Array.from(
+    new Set([
+      ...(selfData || []).map(d => d.date),
+      ...(leaderData || []).map(d => d.date)
+    ])
+  ).sort();
+
+  // Create a complete dataset with all dates
+  const mergedData = allDates.map(date => {
+    const selfPoint = selfData?.find(d => d.date === date);
+    const leaderPoint = leaderData?.find(d => d.date === date);
+    return {
+      date,
+      self_avg_grade: selfPoint?.avg_grade,
+      self_count: selfPoint?.count,
+      leader_avg_grade: leaderPoint?.avg_grade,
+      leader_count: leaderPoint?.count,
+    };
+  });
+
   return (
     <Card>
       <CardHeader>
@@ -53,7 +77,7 @@ export const ReviewsChart = ({ data, isLoading }: ReviewsChartProps) => {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+          <LineChart data={mergedData}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
             <XAxis 
               dataKey="date" 
@@ -70,27 +94,57 @@ export const ReviewsChart = ({ data, isLoading }: ReviewsChartProps) => {
                   const data = payload[0].payload;
                   return (
                     <div className="bg-popover border border-border rounded-lg shadow-lg p-3">
-                      <p className="text-sm font-semibold">{data.date}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Avg Grade: <span className="font-medium text-foreground">{data.avg_grade}</span>
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Reviews: <span className="font-medium text-foreground">{data.count}</span>
-                      </p>
+                      <p className="text-sm font-semibold mb-2">{data.date}</p>
+                      {data.self_avg_grade !== undefined && (
+                        <div className="mb-1">
+                          <p className="text-sm font-medium" style={{ color: '#4287f5' }}>Self Reviews</p>
+                          <p className="text-xs text-muted-foreground">
+                            Grade: {data.self_avg_grade} ({data.self_count} review{data.self_count !== 1 ? 's' : ''})
+                          </p>
+                        </div>
+                      )}
+                      {data.leader_avg_grade !== undefined && (
+                        <div>
+                          <p className="text-sm font-medium" style={{ color: '#e34234' }}>Leader Reviews</p>
+                          <p className="text-xs text-muted-foreground">
+                            Grade: {data.leader_avg_grade} ({data.leader_count} review{data.leader_count !== 1 ? 's' : ''})
+                          </p>
+                        </div>
+                      )}
                     </div>
                   );
                 }
                 return null;
               }}
             />
-            <Line 
-              type="monotone" 
-              dataKey="avg_grade" 
-              stroke="hsl(var(--primary))" 
-              strokeWidth={2}
-              dot={{ fill: 'hsl(var(--primary))', r: 4 }}
-              activeDot={{ r: 6 }}
+            <Legend 
+              wrapperStyle={{ paddingTop: '20px' }}
+              iconType="line"
             />
+            {selfData && selfData.length > 0 && (
+              <Line 
+                type="monotone" 
+                dataKey="self_avg_grade" 
+                name="Self Reviews"
+                stroke="#4287f5" 
+                strokeWidth={2}
+                dot={{ fill: '#4287f5', r: 4 }}
+                activeDot={{ r: 6 }}
+                connectNulls
+              />
+            )}
+            {leaderData && leaderData.length > 0 && (
+              <Line 
+                type="monotone" 
+                dataKey="leader_avg_grade" 
+                name="Leader Reviews"
+                stroke="#e34234" 
+                strokeWidth={2}
+                dot={{ fill: '#e34234', r: 4 }}
+                activeDot={{ r: 6 }}
+                connectNulls
+              />
+            )}
           </LineChart>
         </ResponsiveContainer>
       </CardContent>

@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       // Fetch feedback data - RLS will enforce access control
       const { data: feedbacks, error: fetchError } = await supabase
         .from('feedback')
-        .select('work_date, grade')
+        .select('work_date, grade, author_role')
         .eq('target_user_id', targetUserId)
         .gte('work_date', fromDate)
         .lte('work_date', toDate)
@@ -70,20 +70,23 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Group by date and calculate average
-      const groupedByDate = new Map<string, { sum: number; count: number }>();
+      // Separate by author_role and group by date
+      const selfReviewsByDate = new Map<string, { sum: number; count: number }>();
+      const leaderReviewsByDate = new Map<string, { sum: number; count: number }>();
       
       for (const feedback of feedbacks || []) {
         const dateStr = feedback.work_date;
-        if (!groupedByDate.has(dateStr)) {
-          groupedByDate.set(dateStr, { sum: 0, count: 0 });
+        const targetMap = feedback.author_role === 'user' ? selfReviewsByDate : leaderReviewsByDate;
+        
+        if (!targetMap.has(dateStr)) {
+          targetMap.set(dateStr, { sum: 0, count: 0 });
         }
-        const group = groupedByDate.get(dateStr)!;
+        const group = targetMap.get(dateStr)!;
         group.sum += feedback.grade;
         group.count += 1;
       }
 
-      const series: SeriesDataPoint[] = Array.from(groupedByDate.entries())
+      const selfReviews: SeriesDataPoint[] = Array.from(selfReviewsByDate.entries())
         .map(([date, { sum, count }]) => ({
           date,
           avg_grade: Math.round(sum / count),
@@ -91,8 +94,16 @@ Deno.serve(async (req) => {
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
-      console.log(`Fetched ${series.length} data points for user ${targetUserId} (${fromDate} to ${toDate})`);
-      return new Response(JSON.stringify(series), {
+      const leaderReviews: SeriesDataPoint[] = Array.from(leaderReviewsByDate.entries())
+        .map(([date, { sum, count }]) => ({
+          date,
+          avg_grade: Math.round(sum / count),
+          count,
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      console.log(`Fetched ${selfReviews.length} self reviews and ${leaderReviews.length} leader reviews for user ${targetUserId} (${fromDate} to ${toDate})`);
+      return new Response(JSON.stringify({ self_reviews: selfReviews, leader_reviews: leaderReviews }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
