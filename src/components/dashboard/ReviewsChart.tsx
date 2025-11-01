@@ -1,5 +1,5 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface DataPoint {
   date: string;
@@ -14,7 +14,7 @@ interface ReviewsChartProps {
   color?: string;
 }
 
-const ReviewsChart = ({ title, data, isLoading, color = 'hsl(var(--chart-1))' }: ReviewsChartProps) => {
+const ReviewsChart = ({ title, data, isLoading, color = "hsl(var(--chart-1))" }: ReviewsChartProps) => {
   if (isLoading) {
     return (
       <Card>
@@ -23,9 +23,7 @@ const ReviewsChart = ({ title, data, isLoading, color = 'hsl(var(--chart-1))' }:
           <CardDescription>Average grade by date</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-            Loading chart data...
-          </div>
+          <div className="h-[300px] flex items-center justify-center text-muted-foreground">Loading chart data...</div>
         </CardContent>
       </Card>
     );
@@ -51,13 +49,15 @@ const ReviewsChart = ({ title, data, isLoading, color = 'hsl(var(--chart-1))' }:
     if (!active || !payload || payload.length === 0) return null;
 
     const data = payload[0].payload;
-    
+
     return (
       <div className="bg-background border rounded-lg shadow-lg p-3">
         <p className="font-medium mb-2">{data.date}</p>
         <div className="flex items-center gap-2 text-sm">
           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-          <span>Grade: {data.avg_grade} ({data.count} review{data.count !== 1 ? 's' : ''})</span>
+          <span>
+            Grade: {data.avg_grade} ({data.count} review{data.count !== 1 ? "s" : ""})
+          </span>
         </div>
       </div>
     );
@@ -73,25 +73,14 @@ const ReviewsChart = ({ title, data, isLoading, color = 'hsl(var(--chart-1))' }:
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis 
-              dataKey="date" 
-              className="text-xs"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-            />
-            <YAxis 
-              domain={[0, 100]}
-              className="text-xs"
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
-            />
+            <XAxis dataKey="date" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+            <YAxis domain={[0, 100]} className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
             <Tooltip content={<CustomTooltip />} />
-            <Legend 
-              wrapperStyle={{ paddingTop: '20px' }}
-              iconType="line"
-            />
+            <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="line" />
             <Line
               type="monotone"
               dataKey="avg_grade"
-              stroke={color}
+              stroke={color || "#3b82f6"}
               strokeWidth={2}
               name={title}
               dot={{ fill: color, r: 4 }}
