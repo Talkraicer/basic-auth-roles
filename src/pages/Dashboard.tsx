@@ -12,16 +12,17 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface SeriesDataPoint {
   date: string;
-  avg_grade: number;
-  count: number;
+  self_avg: number | null;
+  leader_avg: number | null;
+  count_self: number;
+  count_leader: number;
 }
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedUserId, setSelectedUserId] = useState('');
-  const [selfData, setSelfData] = useState<SeriesDataPoint[]>([]);
-  const [leaderData, setLeaderData] = useState<SeriesDataPoint[]>([]);
+  const [seriesData, setSeriesData] = useState<SeriesDataPoint[]>([]);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
 
   useEffect(() => {
@@ -49,12 +50,11 @@ const Dashboard = () => {
       });
 
       if (error) throw error;
-      setSelfData(data?.self_reviews || []);
-      setLeaderData(data?.leader_reviews || []);
+      console.log('Received series data:', data?.series);
+      setSeriesData(data?.series || []);
     } catch (error) {
       console.error('Error loading chart data:', error);
-      setSelfData([]);
-      setLeaderData([]);
+      setSeriesData([]);
     } finally {
       setIsLoadingChart(false);
     }
@@ -87,7 +87,7 @@ const Dashboard = () => {
             </Card>
 
             {selectedUserId && (
-              <ReviewsChart selfData={selfData} leaderData={leaderData} isLoading={isLoadingChart} />
+              <ReviewsChart data={seriesData} isLoading={isLoadingChart} />
             )}
           </div>
 
