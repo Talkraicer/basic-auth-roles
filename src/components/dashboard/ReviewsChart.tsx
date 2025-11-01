@@ -3,23 +3,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 interface DataPoint {
   date: string;
-  self_avg: number | null;
-  leader_avg: number | null;
-  count_self: number;
-  count_leader: number;
+  avg_grade: number;
+  count: number;
 }
 
 interface ReviewsChartProps {
+  title: string;
   data: DataPoint[];
   isLoading: boolean;
+  color?: string;
 }
 
-const ReviewsChart = ({ data, isLoading }: ReviewsChartProps) => {
+const ReviewsChart = ({ title, data, isLoading, color = 'hsl(var(--chart-1))' }: ReviewsChartProps) => {
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Review Grades Over Time</CardTitle>
+          <CardTitle>{title}</CardTitle>
           <CardDescription>Average grade by date</CardDescription>
         </CardHeader>
         <CardContent>
@@ -35,12 +35,12 @@ const ReviewsChart = ({ data, isLoading }: ReviewsChartProps) => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Review Trends Over Time</CardTitle>
-          <CardDescription>Average grades by review type</CardDescription>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription>Average grade by date</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-            No review data available for the selected period.
+            No reviews for this period.
           </div>
         </CardContent>
       </Card>
@@ -55,18 +55,10 @@ const ReviewsChart = ({ data, isLoading }: ReviewsChartProps) => {
     return (
       <div className="bg-background border rounded-lg shadow-lg p-3">
         <p className="font-medium mb-2">{data.date}</p>
-        {data.self_avg !== null && (
-          <div className="flex items-center gap-2 text-sm">
-            <div className="w-3 h-3 rounded-full bg-[hsl(var(--chart-1))]" />
-            <span>Self Reviews: {data.self_avg} ({data.count_self} review{data.count_self !== 1 ? 's' : ''})</span>
-          </div>
-        )}
-        {data.leader_avg !== null && (
-          <div className="flex items-center gap-2 text-sm mt-1">
-            <div className="w-3 h-3 rounded-full bg-[hsl(var(--chart-2))]" />
-            <span>Leader Reviews: {data.leader_avg} ({data.count_leader} review{data.count_leader !== 1 ? 's' : ''})</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2 text-sm">
+          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+          <span>Grade: {data.avg_grade} ({data.count} review{data.count !== 1 ? 's' : ''})</span>
+        </div>
       </div>
     );
   };
@@ -74,8 +66,8 @@ const ReviewsChart = ({ data, isLoading }: ReviewsChartProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Review Trends Over Time</CardTitle>
-        <CardDescription>Average grades by review type</CardDescription>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>Average grade by date</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -98,21 +90,11 @@ const ReviewsChart = ({ data, isLoading }: ReviewsChartProps) => {
             />
             <Line
               type="monotone"
-              dataKey="self_avg"
-              stroke="hsl(var(--chart-1))"
+              dataKey="avg_grade"
+              stroke={color}
               strokeWidth={2}
-              name="Self Reviews"
-              dot={{ fill: 'hsl(var(--chart-1))', r: 4 }}
-              connectNulls
-            />
-            <Line
-              type="monotone"
-              dataKey="leader_avg"
-              stroke="hsl(var(--chart-2))"
-              strokeWidth={2}
-              name="Leader Reviews"
-              dot={{ fill: 'hsl(var(--chart-2))', r: 4 }}
-              connectNulls
+              name={title}
+              dot={{ fill: color, r: 4 }}
             />
           </LineChart>
         </ResponsiveContainer>

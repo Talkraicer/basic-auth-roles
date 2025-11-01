@@ -7,10 +7,8 @@ const corsHeaders = {
 
 interface SeriesDataPoint {
   date: string;
-  self_avg: number | null;
-  leader_avg: number | null;
-  count_self: number;
-  count_leader: number;
+  avg_grade: number;
+  count: number;
 }
 
 Deno.serve(async (req) => {
@@ -29,19 +27,6 @@ Deno.serve(async (req) => {
       }
     );
 
-    // Attempt to read auth header but rely on RLS for access control
-    // We intentionally skip explicit supabase.auth.getUser() to avoid 401s when
-    // the client token is missing/expired. RLS will enforce permissions.
-    // const { data: { user }, error: userError } = await supabase.auth.getUser();
-    // if (userError || !user) {
-    //   console.error('Auth error:', userError);
-    //   return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-    //     status: 401,
-    //     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    //   });
-    // }
-
-    // GET/POST /feedback-series with payload: { target_user_id, from?, to? }
     if (req.method === 'GET' || req.method === 'POST') {
       const body = await req.json().catch(() => ({}));
       const targetUserId = body.target_user_id;
@@ -58,65 +43,51 @@ Deno.serve(async (req) => {
       const fromDate = body.from || 
         new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-      console.log(`Fetching feedback for user ${targetUserId} from ${fromDate} to ${toDate}`);
+      console.log(`Fetching leader reviews for user ${targetUserId} from ${fromDate} to ${toDate}`);
 
-      // Fetch feedback data - RLS will enforce access control
+      // Fetch leader reviews (author_role = 'leader') - RLS will enforce access control
       const { data: feedbacks, error: fetchError } = await supabase
         .from('feedback')
-        .select('work_date, grade, author_role')
+        .select('work_date, grade')
         .eq('target_user_id', targetUserId)
+        .eq('author_role', 'leader')
         .gte('work_date', fromDate)
         .lte('work_date', toDate)
         .order('work_date', { ascending: true });
 
       if (fetchError) {
-        console.error('Error fetching feedback:', fetchError);
+        console.error('Error fetching leader reviews:', fetchError);
         return new Response(JSON.stringify({ error: fetchError.message }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
-      console.log(`Fetched ${feedbacks?.length || 0} total feedback records`);
+      console.log(`Fetched ${feedbacks?.length || 0} leader review records`);
 
-      // Group by date and author_role
-      const selfReviewsByDate = new Map<string, { sum: number; count: number }>();
-      const leaderReviewsByDate = new Map<string, { sum: number; count: number }>();
+      // Group by date and calculate average
+      const reviewsByDate = new Map<string, { sum: number; count: number }>();
       
       for (const feedback of feedbacks || []) {
         const dateStr = feedback.work_date;
-        const targetMap = feedback.author_role === 'user' ? selfReviewsByDate : leaderReviewsByDate;
         
-        if (!targetMap.has(dateStr)) {
-          targetMap.set(dateStr, { sum: 0, count: 0 });
+        if (!reviewsByDate.has(dateStr)) {
+          reviewsByDate.set(dateStr, { sum: 0, count: 0 });
         }
-        const group = targetMap.get(dateStr)!;
+        const group = reviewsByDate.get(dateStr)!;
         group.sum += feedback.grade;
         group.count += 1;
       }
 
-      console.log(`Grouped into ${selfReviewsByDate.size} self-review dates and ${leaderReviewsByDate.size} leader-review dates`);
+      console.log(`Grouped into ${reviewsByDate.size} unique dates`);
 
-      // Merge into single series with all unique dates
-      const allDates = new Set([
-        ...Array.from(selfReviewsByDate.keys()),
-        ...Array.from(leaderReviewsByDate.keys())
-      ]);
+      const series: SeriesDataPoint[] = Array.from(reviewsByDate.entries()).map(([date, group]) => ({
+        date,
+        avg_grade: Math.round(group.sum / group.count),
+        count: group.count,
+      })).sort((a, b) => a.date.localeCompare(b.date));
 
-      const series = Array.from(allDates).map(date => {
-        const self = selfReviewsByDate.get(date);
-        const leader = leaderReviewsByDate.get(date);
-        
-        return {
-          date,
-          self_avg: self ? Math.round(self.sum / self.count) : null,
-          leader_avg: leader ? Math.round(leader.sum / leader.count) : null,
-          count_self: self?.count || 0,
-          count_leader: leader?.count || 0,
-        };
-      }).sort((a, b) => a.date.localeCompare(b.date));
-
-      console.log(`Returning ${series.length} merged data points`);
+      console.log(`Returning ${series.length} data points`);
       return new Response(JSON.stringify({ series }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

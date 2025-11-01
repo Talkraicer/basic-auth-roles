@@ -12,18 +12,18 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface SeriesDataPoint {
   date: string;
-  self_avg: number | null;
-  leader_avg: number | null;
-  count_self: number;
-  count_leader: number;
+  avg_grade: number;
+  count: number;
 }
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedUserId, setSelectedUserId] = useState('');
-  const [seriesData, setSeriesData] = useState<SeriesDataPoint[]>([]);
-  const [isLoadingChart, setIsLoadingChart] = useState(false);
+  const [selfSeriesData, setSelfSeriesData] = useState<SeriesDataPoint[]>([]);
+  const [leaderSeriesData, setLeaderSeriesData] = useState<SeriesDataPoint[]>([]);
+  const [isLoadingSelfChart, setIsLoadingSelfChart] = useState(false);
+  const [isLoadingLeaderChart, setIsLoadingLeaderChart] = useState(false);
 
   useEffect(() => {
     if (selectedUserId) {
@@ -34,29 +34,53 @@ const Dashboard = () => {
   const loadChartData = async () => {
     if (!selectedUserId) return;
     
-    setIsLoadingChart(true);
+    setIsLoadingSelfChart(true);
+    setIsLoadingLeaderChart(true);
+    
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
         throw new Error('No active session');
       }
 
-      const { data, error } = await supabase.functions.invoke('feedback-series', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${sessionData.session.access_token}`,
-        },
-        body: JSON.stringify({ target_user_id: selectedUserId }),
-      });
+      // Fetch both series in parallel
+      const [selfResponse, leaderResponse] = await Promise.all([
+        supabase.functions.invoke('feedback-self-series', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+          },
+          body: JSON.stringify({ target_user_id: selectedUserId }),
+        }),
+        supabase.functions.invoke('feedback-leader-series', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+          },
+          body: JSON.stringify({ target_user_id: selectedUserId }),
+        }),
+      ]);
 
-      if (error) throw error;
-      console.log('Received series data:', data?.series);
-      setSeriesData(data?.series || []);
+      if (selfResponse.error) {
+        console.error('Error fetching self reviews:', selfResponse.error);
+      } else {
+        console.log('Received self series data:', selfResponse.data?.series);
+        setSelfSeriesData(selfResponse.data?.series || []);
+      }
+
+      if (leaderResponse.error) {
+        console.error('Error fetching leader reviews:', leaderResponse.error);
+      } else {
+        console.log('Received leader series data:', leaderResponse.data?.series);
+        setLeaderSeriesData(leaderResponse.data?.series || []);
+      }
     } catch (error) {
       console.error('Error loading chart data:', error);
-      setSeriesData([]);
+      setSelfSeriesData([]);
+      setLeaderSeriesData([]);
     } finally {
-      setIsLoadingChart(false);
+      setIsLoadingSelfChart(false);
+      setIsLoadingLeaderChart(false);
     }
   };
 
@@ -87,7 +111,20 @@ const Dashboard = () => {
             </Card>
 
             {selectedUserId && (
-              <ReviewsChart data={seriesData} isLoading={isLoadingChart} />
+              <div className="space-y-4">
+                <ReviewsChart 
+                  title="Self Reviews" 
+                  data={selfSeriesData} 
+                  isLoading={isLoadingSelfChart}
+                  color="hsl(var(--chart-1))"
+                />
+                <ReviewsChart 
+                  title="Leader Reviews" 
+                  data={leaderSeriesData} 
+                  isLoading={isLoadingLeaderChart}
+                  color="hsl(var(--chart-2))"
+                />
+              </div>
             )}
           </div>
 
