@@ -7,6 +7,12 @@ interface DataPoint {
   count: number;
 }
 
+interface UsableDataPoint {
+  date: Date;
+  avg_grade: number;
+  count: number;
+}
+
 interface ReviewsChartProps {
   title: string;
   data: DataPoint[];
@@ -72,8 +78,7 @@ const ReviewsChart = ({ title, data, isLoading, color = "hsl(var(--chart-1))" }:
       <CardContent>
         <div className="w-full h-[300px]">
           <ResponsiveContainer width="100%" height={300}>
-            {typeof data[0].date}
-            <LineChart data={data}>
+            <LineChart data={data.map((point) => ({ ...point, date: new Date(point.date) }))}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis dataKey="date" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
               <YAxis domain={[0, 100]} className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
