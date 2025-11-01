@@ -42,7 +42,7 @@ const Dashboard = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('feedback-series', {
-        method: 'GET',
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${sessionData.session.access_token}`,
         },

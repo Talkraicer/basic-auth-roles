@@ -38,8 +38,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // GET /feedback-series with body: { target_user_id, from?, to? }
-    if (req.method === 'GET') {
+    // GET/POST /feedback-series with payload: { target_user_id, from?, to? }
+    if (req.method === 'GET' || req.method === 'POST') {
       const body = await req.json().catch(() => ({}));
       const targetUserId = body.target_user_id;
       
