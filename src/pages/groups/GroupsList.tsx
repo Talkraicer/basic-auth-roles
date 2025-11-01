@@ -9,6 +9,7 @@ import { NewGroupModal } from '@/components/groups/NewGroupModal';
 import { GroupCard } from '@/components/groups/GroupCard';
 import { Plus, Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Header } from '@/components/Header';
 
 export const GroupsList = () => {
   const { user } = useAuth();
@@ -114,7 +115,9 @@ export const GroupsList = () => {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="container mx-auto px-4 py-8">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -168,6 +171,7 @@ export const GroupsList = () => {
         onOpenChange={setNewGroupModalOpen}
         onSuccess={loadGroups}
       />
+      </main>
     </div>
   );
 };

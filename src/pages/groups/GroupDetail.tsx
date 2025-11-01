@@ -14,6 +14,7 @@ import { UserPicker } from '@/components/groups/UserPicker';
 import { Star, Trash2, UserPlus, ArrowLeft, Edit2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
+import { Header } from '@/components/Header';
 
 export const GroupDetail = () => {
   const { groupname } = useParams<{ groupname: string }>();
@@ -230,12 +231,14 @@ export const GroupDetail = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/groups')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <h1 className="text-3xl font-bold">{decodeURIComponent(groupname)}</h1>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main className="container mx-auto px-4 py-8 space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-3xl font-bold">{decodeURIComponent(groupname)}</h1>
         <Button
           variant="ghost"
           size="icon"
@@ -400,6 +403,7 @@ export const GroupDetail = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </main>
     </div>
   );
 };

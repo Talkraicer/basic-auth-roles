@@ -54,9 +54,8 @@ export const groupsApi = {
   },
 
   async delete(groupname: string): Promise<{ ok: boolean }> {
-    const { data, error } = await supabase.functions.invoke('groups', {
+    const { data, error } = await supabase.functions.invoke(`groups/${encodeURIComponent(groupname)}`, {
       method: 'DELETE',
-      body: { groupname },
     });
 
     if (error) throw error;
