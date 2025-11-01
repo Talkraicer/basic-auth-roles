@@ -32,19 +32,17 @@ Deno.serve(async (req) => {
 
     const url = new URL(req.url);
     const pathParts = url.pathname.split('/').filter(Boolean);
-    
-    // Expected: /group-members/:groupname or /group-members/:groupname/:evaluatee_id
-    if (pathParts.length < 2) {
-      return new Response(JSON.stringify({ error: 'Invalid path' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
 
-    const groupname = decodeURIComponent(pathParts[1]);
-
-    // GET /group-members/:groupname - List members
-    if (req.method === 'GET' && pathParts.length === 2) {
+    // GET /group-members?groupname=... - List members
+    if (req.method === 'GET') {
+      const groupname = url.searchParams.get('groupname');
+      
+      if (!groupname) {
+        return new Response(JSON.stringify({ error: 'groupname query parameter is required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
       const { data: affiliations, error: affiliationsError } = await supabase
         .from('affiliation')
         .select('evaluatee_id, created_at')
@@ -97,8 +95,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // POST /group-members/:groupname - Add member (leaders only)
-    if (req.method === 'POST' && pathParts.length === 2) {
+    // POST /group-members - Add member (leaders only)
+    if (req.method === 'POST') {
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
@@ -114,10 +112,10 @@ Deno.serve(async (req) => {
       }
 
       const body = await req.json();
-      const { evaluatee_id } = body;
+      const { groupname, evaluatee_id } = body;
 
-      if (!evaluatee_id) {
-        return new Response(JSON.stringify({ error: 'evaluatee_id is required' }), {
+      if (!groupname || !evaluatee_id) {
+        return new Response(JSON.stringify({ error: 'groupname and evaluatee_id are required' }), {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -148,9 +146,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // DELETE /group-members/:groupname/:evaluatee_id - Remove member (leaders only)
-    if (req.method === 'DELETE' && pathParts.length === 3) {
-      const evaluatee_id = pathParts[2];
+    // DELETE /group-members - Remove member (leaders only)
+    if (req.method === 'DELETE') {
+      const body = await req.json();
+      const { groupname, evaluatee_id } = body;
+
+      if (!groupname || !evaluatee_id) {
+        return new Response(JSON.stringify({ error: 'groupname and evaluatee_id are required' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
       const { data: roleData } = await supabase
         .from('user_roles')

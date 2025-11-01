@@ -64,9 +64,8 @@ export const groupsApi = {
   },
 
   async getMembers(groupname: string): Promise<GroupMember[]> {
-    const { data, error } = await supabase.functions.invoke('group-members', {
+    const { data, error } = await supabase.functions.invoke(`group-members?groupname=${encodeURIComponent(groupname)}`, {
       method: 'GET',
-      body: { groupname },
     });
 
     if (error) throw error;
