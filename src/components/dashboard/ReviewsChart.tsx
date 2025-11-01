@@ -85,7 +85,7 @@ const ReviewsChart = ({ title, data, isLoading, color = "hsl(var(--chart-1))" }:
               }))}
             >
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="date" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
+              <XAxis dataKey="date" type="number" className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
               <YAxis domain={[0, 100]} className="text-xs" tick={{ fill: "hsl(var(--muted-foreground))" }} />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ paddingTop: "20px" }} iconType="line" />
