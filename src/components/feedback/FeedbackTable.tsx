@@ -65,6 +65,7 @@ export const FeedbackTable = ({
               <TableHead>Role</TableHead>
               <TableHead>Grade</TableHead>
               <TableHead>Subject</TableHead>
+              <TableHead>Job Rule</TableHead>
               <TableHead>Notes</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -89,6 +90,9 @@ export const FeedbackTable = ({
                 </TableCell>
                 <TableCell className="max-w-[150px] truncate">
                   {feedback.review_subject}
+                </TableCell>
+                <TableCell className="max-w-[120px] truncate">
+                  {feedback.job_rule || 'other'}
                 </TableCell>
                 <TableCell className="max-w-[200px] truncate text-muted-foreground">
                   {feedback.notes || '-'}

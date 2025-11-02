@@ -33,7 +33,11 @@ export const useFeedback = () => {
   }) => {
     setLoading(true);
     try {
-      let query = supabase.from("feedback").select("*").order("work_date", { ascending: false });
+      let query = supabase
+        .from("feedback")
+        .select("*")
+        .order("work_date", { ascending: false })
+        .order("created_at", { ascending: false });
 
       if (filters?.target_user_id) {
         query = query.eq("target_user_id", filters.target_user_id);
@@ -69,6 +73,7 @@ export const useFeedback = () => {
 
           return {
             ...feedback,
+            job_rule: feedback.job_rule?.trim() || "other",
             author_username: authorProfile?.username,
             target_username: targetProfile?.username,
           };
