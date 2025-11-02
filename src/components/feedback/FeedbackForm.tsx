@@ -18,6 +18,7 @@ const feedbackSchema = z.object({
   work_date: z.date(),
   grade: z.number().min(1).max(100),
   review_subject: z.string().min(1).max(50),
+  job_rule: z.string().optional(),
   notes: z.string().optional(),
 });
 
@@ -59,11 +60,13 @@ export const FeedbackForm = ({
           work_date: new Date(existingFeedback.work_date),
           grade: existingFeedback.grade,
           review_subject: existingFeedback.review_subject,
+          job_rule: existingFeedback.job_rule || "other",
           notes: existingFeedback.notes || "",
         }
       : {
           work_date: new Date(),
           grade: 80,
+          job_rule: "other",
         },
   });
 
@@ -95,6 +98,7 @@ export const FeedbackForm = ({
         work_date: format(data.work_date, "yyyy-MM-dd"),
         grade: data.grade,
         review_subject: data.review_subject.trim(),
+        job_rule: data.job_rule?.trim() || "other",
         notes: data.notes?.trim(),
       };
 
@@ -167,6 +171,16 @@ export const FeedbackForm = ({
             <Label htmlFor="grade">Grade (1-100)</Label>
             <Input id="grade" type="number" {...register("grade", { valueAsNumber: true })} min={1} max={100} />
             {errors.grade && <p className="text-sm text-destructive">{errors.grade.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="job_rule">Job/Rule</Label>
+            <Input
+              id="job_rule"
+              {...register("job_rule")}
+              placeholder="e.g., developer, manager (default: other)"
+            />
+            {errors.job_rule && <p className="text-sm text-destructive">{errors.job_rule.message}</p>}
           </div>
 
           <div className="space-y-2">
