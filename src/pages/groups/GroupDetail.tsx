@@ -15,6 +15,7 @@ import { Star, Trash2, UserPlus, ArrowLeft, Edit2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { Header } from '@/components/Header';
+import { GroupGradesPie } from '@/components/groups/GroupGradesPie';
 
 export const GroupDetail = () => {
   const { groupname } = useParams<{ groupname: string }>();
@@ -335,6 +336,8 @@ export const GroupDetail = () => {
           )}
         </CardContent>
       </Card>
+
+      {isLeader && <GroupGradesPie groupname={decodeURIComponent(groupname)} />}
 
       {isLeader && (
         <Card className="border-destructive">

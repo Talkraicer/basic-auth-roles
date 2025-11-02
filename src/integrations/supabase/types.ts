@@ -201,6 +201,14 @@ export type Database = {
       }
     }
     Functions: {
+      get_group_grades: {
+        Args: { p_groupname: string }
+        Returns: {
+          avg_grade: number
+          user_id: string
+          username: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
