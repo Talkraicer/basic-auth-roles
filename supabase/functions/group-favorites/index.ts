@@ -30,18 +30,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    const url = new URL(req.url);
-    const pathParts = url.pathname.split('/').filter(Boolean);
+    const { groupname } = await req.json();
     
-    // Expected: /group-favorites/:groupname
-    if (pathParts.length !== 2) {
-      return new Response(JSON.stringify({ error: 'Invalid path' }), {
+    if (!groupname) {
+      return new Response(JSON.stringify({ error: 'Missing groupname' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const groupname = decodeURIComponent(pathParts[1]);
 
     // POST /group-favorites/:groupname - Add to favorites
     if (req.method === 'POST') {
