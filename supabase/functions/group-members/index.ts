@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.77.0';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
 };
 
 Deno.serve(async (req) => {
@@ -148,8 +149,34 @@ Deno.serve(async (req) => {
 
     // DELETE /group-members - Remove member (leaders only)
     if (req.method === 'DELETE') {
-      const body = await req.json();
-      const { groupname, evaluatee_id } = body;
+      // Support both path params and JSON body
+      let groupnameParam: string | null = null;
+      let evaluateeIdParam: string | null = null;
+
+      const gmIndex = pathParts.findIndex((p) => p === 'group-members');
+      if (gmIndex !== -1) {
+        const maybeGroup = pathParts[gmIndex + 1];
+        const maybeEvaluatee = pathParts[gmIndex + 2];
+        if (maybeGroup && maybeEvaluatee) {
+          groupnameParam = decodeURIComponent(maybeGroup);
+          evaluateeIdParam = decodeURIComponent(maybeEvaluatee);
+        }
+      }
+
+      let bodyGroupname: string | null = null;
+      let bodyEvaluatee: string | null = null;
+      try {
+        if (req.headers.get('content-type')?.includes('application/json')) {
+          const body = await req.json();
+          bodyGroupname = body?.groupname ?? null;
+          bodyEvaluatee = body?.evaluatee_id ?? null;
+        }
+      } catch (_) {
+        // ignore JSON parse errors for DELETE with no body
+      }
+
+      const groupname = (groupnameParam || bodyGroupname || '').trim();
+      const evaluatee_id = (evaluateeIdParam || bodyEvaluatee || '').trim();
 
       if (!groupname || !evaluatee_id) {
         return new Response(JSON.stringify({ error: 'groupname and evaluatee_id are required' }), {
@@ -158,6 +185,7 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Only leaders can remove members
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
@@ -168,6 +196,29 @@ Deno.serve(async (req) => {
         console.warn(`Non-leader ${user.id} attempted to remove member from group`);
         return new Response(JSON.stringify({ error: 'Forbidden: Only leaders can remove members' }), {
           status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Verify membership exists
+      const { data: existing, error: selectError } = await supabase
+        .from('affiliation')
+        .select('id')
+        .eq('groupname', groupname)
+        .eq('evaluatee_id', evaluatee_id)
+        .maybeSingle();
+
+      if (selectError) {
+        console.error('Error checking membership:', selectError);
+        return new Response(JSON.stringify({ error: selectError.message }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (!existing) {
+        return new Response(JSON.stringify({ error: 'Membership not found' }), {
+          status: 404,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
