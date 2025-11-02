@@ -8,6 +8,7 @@ import { MessageSquare, List } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { UserSelect } from "@/components/dashboard/UserSelect";
 import { ReviewsChart } from "@/components/dashboard/ReviewsChart";
+import { FavoriteGroupPieChart } from "@/components/dashboard/FavoriteGroupPieChart";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SeriesDataPoint {
@@ -136,6 +137,8 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </div>
+
+          <FavoriteGroupPieChart />
 
           <div className="space-y-4">
             <Card>

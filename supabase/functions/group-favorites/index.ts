@@ -30,6 +30,30 @@ Deno.serve(async (req) => {
       });
     }
 
+    // GET /group-favorites - List user's favorite groups
+    if (req.method === 'GET') {
+      const { data: favorites, error: queryError } = await supabase
+        .from('favorites')
+        .select('groupname')
+        .eq('reviewer_id', user.id)
+        .order('groupname');
+
+      if (queryError) {
+        console.error('Error fetching favorites:', queryError);
+        return new Response(JSON.stringify({ error: 'Failed to fetch favorites' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(
+        JSON.stringify({ groups: favorites || [] }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     const { groupname } = await req.json();
     
     if (!groupname) {
