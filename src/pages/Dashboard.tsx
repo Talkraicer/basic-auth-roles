@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { UserSelect } from "@/components/dashboard/UserSelect";
 import { ReviewsChart } from "@/components/dashboard/ReviewsChart";
 import { FavoriteGroupPieChart } from "@/components/dashboard/FavoriteGroupPieChart";
+import { BulkImportCard } from "@/components/dashboard/BulkImportCard";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SeriesDataPoint {
@@ -139,6 +140,8 @@ const Dashboard = () => {
           </div>
 
           {user?.role === 'leader' && <FavoriteGroupPieChart />}
+
+          {user?.role === 'leader' && <BulkImportCard />}
 
           <div className="space-y-4">
             <Card>
