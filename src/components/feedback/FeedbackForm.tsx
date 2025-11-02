@@ -1,18 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { Feedback, useFeedback } from '@/hooks/useFeedback';
-import { CounterpartPreview } from './CounterpartPreview';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Feedback, useFeedback } from "@/hooks/useFeedback";
+import { CounterpartPreview } from "./CounterpartPreview";
 
 const feedbackSchema = z.object({
   work_date: z.date(),
@@ -26,7 +26,7 @@ type FeedbackFormData = z.infer<typeof feedbackSchema>;
 interface FeedbackFormProps {
   targetUserId: string;
   authorUserId: string;
-  authorRole: 'user' | 'leader';
+  authorRole: "user" | "leader";
   counterpartRoleLabel: string;
   existingFeedback?: Feedback;
   onSuccess: () => void;
@@ -59,7 +59,7 @@ export const FeedbackForm = ({
           work_date: new Date(existingFeedback.work_date),
           grade: existingFeedback.grade,
           review_subject: existingFeedback.review_subject,
-          notes: existingFeedback.notes || '',
+          notes: existingFeedback.notes || "",
         }
       : {
           work_date: new Date(),
@@ -67,12 +67,12 @@ export const FeedbackForm = ({
         },
   });
 
-  const workDate = watch('work_date');
+  const workDate = watch("work_date");
 
   useEffect(() => {
     if (workDate) {
       const loadCounterpart = async () => {
-        const dateStr = format(workDate, 'yyyy-MM-dd');
+        const dateStr = format(workDate, "yyyy-MM-dd");
         const cp = await findCounterpart(targetUserId, dateStr, authorRole);
         setCounterpart(cp);
       };
@@ -81,8 +81,8 @@ export const FeedbackForm = ({
   }, [workDate, targetUserId, authorRole]);
 
   const handleAlign = (data: { grade: number; review_subject: string }) => {
-    setValue('grade', data.grade);
-    setValue('review_subject', data.review_subject);
+    setValue("grade", data.grade);
+    setValue("review_subject", data.review_subject);
   };
 
   const onSubmit = async (data: FeedbackFormData) => {
@@ -92,7 +92,7 @@ export const FeedbackForm = ({
         target_user_id: targetUserId,
         author_user_id: authorUserId,
         author_role: authorRole,
-        work_date: format(data.work_date, 'yyyy-MM-dd'),
+        work_date: format(data.work_date, "yyyy-MM-dd"),
         grade: data.grade,
         review_subject: data.review_subject.trim(),
         notes: data.notes?.trim(),
@@ -112,7 +112,7 @@ export const FeedbackForm = ({
 
   const handleDelete = async () => {
     if (!existingFeedback) return;
-    if (!confirm('Are you sure you want to delete this feedback?')) return;
+    if (!confirm("Are you sure you want to delete this feedback?")) return;
 
     setIsLoading(true);
     try {
@@ -133,72 +133,50 @@ export const FeedbackForm = ({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !workDate && 'text-muted-foreground'
-                  )}
+                  className={cn("w-full justify-start text-left font-normal", !workDate && "text-muted-foreground")}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {workDate ? format(workDate, 'PPP') : 'Pick a date'}
+                  {workDate ? format(workDate, "PPP") : "Pick a date"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
                   selected={workDate}
-                  onSelect={(date) => date && setValue('work_date', date)}
+                  onSelect={(date) => date && setValue("work_date", date)}
                   initialFocus
                   className="pointer-events-auto"
                 />
               </PopoverContent>
             </Popover>
-            {errors.work_date && (
-              <p className="text-sm text-destructive">{errors.work_date.message}</p>
-            )}
+            {errors.work_date && <p className="text-sm text-destructive">{errors.work_date.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="review_subject">Review Subject</Label>
             <Input
               id="review_subject"
-              {...register('review_subject')}
+              {...register("review_subject")}
               placeholder="Character trait or aspect"
               maxLength={50}
             />
-            {errors.review_subject && (
-              <p className="text-sm text-destructive">{errors.review_subject.message}</p>
-            )}
+            {errors.review_subject && <p className="text-sm text-destructive">{errors.review_subject.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="grade">Grade (1-100)</Label>
-            <Input
-              id="grade"
-              type="number"
-              {...register('grade', { valueAsNumber: true })}
-              min={1}
-              max={100}
-            />
+            <Input id="grade" type="number" {...register("grade", { valueAsNumber: true })} min={1} max={100} />
             {errors.grade && <p className="text-sm text-destructive">{errors.grade.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="notes">Notes (Optional)</Label>
-            <Textarea
-              id="notes"
-              {...register('notes')}
-              placeholder="Additional comments"
-              rows={4}
-            />
+            <Textarea id="notes" {...register("notes")} placeholder="Additional comments" rows={4} />
           </div>
         </div>
 
         <div className="space-y-4">
-          <CounterpartPreview
-            counterpart={counterpart}
-            onAlign={handleAlign}
-            roleLabel={counterpartRoleLabel}
-          />
+          <CounterpartPreview counterpart={counterpart} onAlign={handleAlign} roleLabel={counterpartRoleLabel} />
         </div>
       </div>
 
@@ -209,18 +187,13 @@ export const FeedbackForm = ({
           </Button>
         )}
         {existingFeedback && (
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={handleDelete}
-            disabled={isLoading}
-          >
+          <Button type="button" variant="destructive" onClick={handleDelete} disabled={isLoading}>
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>
         )}
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : existingFeedback ? 'Update' : 'Save Feedback'}
+          {isLoading ? "Saving..." : existingFeedback ? "Update" : "Save Feedback"}
         </Button>
       </div>
     </form>
