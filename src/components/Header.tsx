@@ -30,7 +30,7 @@ export const Header = () => {
       icon: MessageSquare,
     },
     { path: '/feedback/list', label: 'Feedback List', icon: List },
-    { path: '/groups', label: 'Groups', icon: Users },
+    ...(user.role === 'leader' ? [{ path: '/groups', label: 'Groups', icon: Users }] : []),
   ];
 
   return (

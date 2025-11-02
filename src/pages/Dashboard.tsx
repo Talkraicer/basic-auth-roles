@@ -138,7 +138,7 @@ const Dashboard = () => {
             </Card>
           </div>
 
-          <FavoriteGroupPieChart />
+          {user?.role === 'leader' && <FavoriteGroupPieChart />}
 
           <div className="space-y-4">
             <Card>
